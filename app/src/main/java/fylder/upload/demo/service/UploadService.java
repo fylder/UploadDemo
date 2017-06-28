@@ -8,8 +8,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -17,8 +15,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import fylder.upload.demo.event.RunThread;
 import fylder.upload.demo.event.UploadResponse;
+import xiaofei.library.hermeseventbus.HermesEventBus;
 
 /**
  * Created by fylder on 2017/4/27.
@@ -58,6 +56,7 @@ public class UploadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.w("test","onDestroy");
     }
 
     /**
@@ -113,45 +112,52 @@ public class UploadService extends Service {
 
     private void upload(FileQueue fileQueue) {
 
-        AsyncTask<Void, Void, Integer> uploadTask = new AsyncTask<Void, Void, Integer>() {
-            @Override
-            protected Integer doInBackground(Void... voids) {
-                Log.i("test", "start:" + fileQueue.getMid());
-                UploadResponse response = new UploadResponse();
-                response.setState(1);
-                response.setFileQueue(fileQueue);
-                EventBus.getDefault().post(response);
-                running++;
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return fileQueue.getMid();
-            }
-
-            @Override
-            protected void onPostExecute(Integer integer) {
-                super.onPostExecute(integer);
-                Log.w("test", "finish:" + integer);
-                UploadResponse response = new UploadResponse();
-                response.setState(2);
-                response.setFileQueue(fileQueue);
-
-                EventBus.getDefault().post(response);
-                running--;
-            }
-        };
-        uploadTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);//异步多线程
-
+        new UploadTask(fileQueue).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);//异步多线程
     }
 
-    void msg(int index, String msg) {
-        RunThread runThread = new RunThread();
-        runThread.setIndex(index);
-        runThread.setMsg(msg);
-        EventBus.getDefault().post(runThread);
+    static class UploadTask extends AsyncTask<Void, Void, Integer> {
+
+        FileQueue fileQueue;
+
+        UploadTask(FileQueue fileQueue) {
+            this.fileQueue = fileQueue;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... voids) {
+            Log.i("test", "start:" + fileQueue.getMid());
+            UploadResponse response = new UploadResponse();
+            response.setState(1);
+            response.setFileQueue(fileQueue);
+            HermesEventBus.getDefault().post(response);
+            running++;
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return fileQueue.getMid();
+        }
+
+        @Override
+        protected void onPostExecute(Integer integer) {
+            super.onPostExecute(integer);
+            Log.w("test", "finish:" + integer);
+            UploadResponse response = new UploadResponse();
+            response.setState(2);
+            response.setFileQueue(fileQueue);
+
+            HermesEventBus.getDefault().post(response);
+            running--;
+        }
     }
+
+//    void msg(int index, String msg) {
+//        RunThread runThread = new RunThread();
+//        runThread.setIndex(index);
+//        runThread.setMsg(msg);
+//        HermesEventBus.getDefault().post(runThread);
+//    }
 
 
 }

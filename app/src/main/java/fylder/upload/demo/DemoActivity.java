@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -15,6 +14,7 @@ import fylder.upload.demo.event.RunThread;
 import fylder.upload.demo.event.UploadResponse;
 import fylder.upload.demo.service.FileQueue;
 import fylder.upload.demo.service.UploadService;
+import xiaofei.library.hermeseventbus.HermesEventBus;
 
 public class DemoActivity extends AppCompatActivity {
 
@@ -30,13 +30,13 @@ public class DemoActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
+        HermesEventBus.getDefault().register(this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        EventBus.getDefault().unregister(this);
+        HermesEventBus.getDefault().unregister(this);
     }
 
 
@@ -59,7 +59,7 @@ public class DemoActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    void response(UploadResponse response) {
+    protected void response(UploadResponse response) {
         String s;
         if (response.getState() == 1) {
             s = new Date().getTime() + "--start:";
@@ -71,7 +71,7 @@ public class DemoActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    void runThread(RunThread runThread) {
+    protected void runThread(RunThread runThread) {
         String s = "go:" + runThread.getIndex() + "\tmsg:" + runThread.getMsg() + "\n";
         showText.append(s);
     }
