@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import fylder.upload.demo.event.UploadResponse;
+import fylder.upload.demo.event.UploadStatus;
 import xiaofei.library.hermeseventbus.HermesEventBus;
 
 /**
@@ -31,7 +32,7 @@ public class UploadService extends Service {
     boolean startStat = true;
     boolean hasRun = false;
 
-    Executor executor = new ThreadPoolExecutor(3, 5, 10,
+    Executor executor = new ThreadPoolExecutor(5, 5, 10,
             TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(5));
 
     @Nullable
@@ -56,7 +57,7 @@ public class UploadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.w("test","onDestroy");
+        Log.w("test", "onDestroy");
     }
 
     /**
@@ -86,6 +87,10 @@ public class UploadService extends Service {
 
         stopSelf();
         Log.w("test", "stopSelf");
+
+        UploadStatus response = new UploadStatus();
+        response.setStatus(2);
+        HermesEventBus.getDefault().post(response);
     });
 
     /**
@@ -111,8 +116,11 @@ public class UploadService extends Service {
      */
 
     private void upload(FileQueue fileQueue) {
-
+        UploadStatus response = new UploadStatus();
+        response.setStatus(1);
+        HermesEventBus.getDefault().post(response);
         new UploadTask(fileQueue).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);//异步多线程
+//        new UploadTask(fileQueue).executeOnExecutor(executor);//异步多线程
     }
 
     static class UploadTask extends AsyncTask<Void, Void, Integer> {
@@ -126,15 +134,24 @@ public class UploadService extends Service {
         @Override
         protected Integer doInBackground(Void... voids) {
             Log.i("test", "start:" + fileQueue.getMid());
-            UploadResponse response = new UploadResponse();
-            response.setState(1);
-            response.setFileQueue(fileQueue);
-            HermesEventBus.getDefault().post(response);
             running++;
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            int pro = 1;
+            while (pro <= 100) {
+                UploadResponse response = new UploadResponse();
+                response.setState(1);
+                response.setPro(pro);
+                response.setFileQueue(fileQueue);
+                HermesEventBus.getDefault().post(response);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (fileQueue.getMid() % 3 == 2) {
+                    pro += 7;
+                } else {
+                    pro += 2;
+                }
             }
             return fileQueue.getMid();
         }
@@ -145,6 +162,7 @@ public class UploadService extends Service {
             Log.w("test", "finish:" + integer);
             UploadResponse response = new UploadResponse();
             response.setState(2);
+            response.setPro(100);
             response.setFileQueue(fileQueue);
 
             HermesEventBus.getDefault().post(response);
