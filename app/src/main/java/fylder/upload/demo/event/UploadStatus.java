@@ -12,8 +12,8 @@ import fylder.upload.demo.service.bean.FileQueue;
 
 public class UploadStatus {
 
-    public int status;//1:开始   2:结束    100:通知获取数据  200:返回数据
-    public List<FileQueue> datas;
+    private int status;//1:开始   2:结束    100:通知获取数据  200:返回数据
+    private List<FileQueue> datas;
 
     public int getStatus() {
         return status;

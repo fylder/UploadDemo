@@ -11,7 +11,7 @@ public class FileQueue implements Parcelable {
 
     private String path;
     private int mid;
-    private  int pro;
+    private int pro;
 
     public FileQueue() {
     }

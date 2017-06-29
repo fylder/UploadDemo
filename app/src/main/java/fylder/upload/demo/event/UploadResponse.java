@@ -8,9 +8,9 @@ import fylder.upload.demo.service.bean.FileQueue;
 
 public class UploadResponse {
 
-    int state;
-    int pro;
-    FileQueue fileQueue;
+    private int state;
+    private int pro;
+    private FileQueue fileQueue;
 
     public int getState() {
         return state;

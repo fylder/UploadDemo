@@ -63,10 +63,7 @@ public class UploadService extends Service {
         List<FileQueue> fileQueues = data.getFileQueues();
         for (FileQueue f : fileQueues) {
             datas.put(f.getMid(), f);
-            Log.i("test", "onStartCommand key:" + f.getMid());
-        }
-        for (int i = 0; i < datas.size(); i++) {
-            sendFile(datas.valueAt(i));//上传文件放入队列
+            sendFile(datas.get(f.getMid()));//上传文件放入队列
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -75,7 +72,6 @@ public class UploadService extends Service {
     public void onDestroy() {
         super.onDestroy();
         HermesEventBus.getDefault().unregister(this);
-        Log.w("test", "onDestroy");
     }
 
     /**
@@ -125,7 +121,6 @@ public class UploadService extends Service {
             }
         } else if (hasRun && running == 0) {
             startStat = false;
-            Log.w("test", "startStat:" + false);
         }
     }
 
@@ -168,7 +163,7 @@ public class UploadService extends Service {
                 HermesEventBus.getDefault().post(response);
                 datas.get(key).setPro(pro);
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(27);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
