@@ -2,15 +2,13 @@ package fylder.upload.demo.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,13 +22,13 @@ import fylder.upload.demo.model.ImageModel;
 public class ImageAdapter extends RecyclerView.Adapter {
 
     private Context context;
-    private List<ImageModel> datas = new ArrayList<>();
+    private SparseArray<ImageModel> datas = new SparseArray<>();
 
     public ImageAdapter(Context context) {
         this.context = context;
     }
 
-    public void setDatas(List<ImageModel> datas) {
+    public void setDatas(SparseArray<ImageModel> datas) {
         this.datas = datas;
         notifyDataSetChanged();
     }
@@ -43,7 +41,7 @@ public class ImageAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ImageModel data = datas.get(position);
+        ImageModel data = datas.valueAt(position);
         ImageViewHolder viewHolder = (ImageViewHolder) holder;
         String index = position + 1 + "";
         viewHolder.indexText.setText(index);

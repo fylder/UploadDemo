@@ -1,6 +1,6 @@
 package fylder.upload.demo.event;
 
-import fylder.upload.demo.service.FileQueue;
+import fylder.upload.demo.service.bean.FileQueue;
 
 /**
  * Created by fylder on 2017/4/27.

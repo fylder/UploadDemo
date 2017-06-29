@@ -7,8 +7,14 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.util.SparseArray;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -17,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 
 import fylder.upload.demo.event.UploadResponse;
 import fylder.upload.demo.event.UploadStatus;
+import fylder.upload.demo.service.bean.FileQueue;
+import fylder.upload.demo.service.bean.ServiceData;
 import xiaofei.library.hermeseventbus.HermesEventBus;
 
 /**
@@ -29,6 +37,7 @@ public class UploadService extends Service {
     private static final int RUNNING_MAX = 5;
     static int running = 0;
     Queue<FileQueue> fileQueues = new LinkedList<>();
+    static SparseArray<FileQueue> datas = new SparseArray<>();
     boolean startStat = true;
     boolean hasRun = false;
 
@@ -44,19 +53,28 @@ public class UploadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        HermesEventBus.getDefault().register(this);
         runThread.start();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        FileQueue fileQueue = intent.getParcelableExtra("ahh");
-        sendFile(fileQueue);
+        ServiceData data = intent.getParcelableExtra("ahh");
+        List<FileQueue> fileQueues = data.getFileQueues();
+        for (FileQueue f : fileQueues) {
+            datas.put(f.getMid(), f);
+            Log.i("test", "onStartCommand key:" + f.getMid());
+        }
+        for (int i = 0; i < datas.size(); i++) {
+            sendFile(datas.valueAt(i));//上传文件放入队列
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        HermesEventBus.getDefault().unregister(this);
         Log.w("test", "onDestroy");
     }
 
@@ -133,7 +151,13 @@ public class UploadService extends Service {
 
         @Override
         protected Integer doInBackground(Void... voids) {
-            Log.i("test", "start:" + fileQueue.getMid());
+            int key = 0;
+            for (int i = 0; i < datas.size(); i++) {
+                if (datas.valueAt(i).getMid() == fileQueue.getMid()) {
+                    key = datas.keyAt(i);
+                    break;
+                }
+            }
             running++;
             int pro = 1;
             while (pro <= 100) {
@@ -142,8 +166,9 @@ public class UploadService extends Service {
                 response.setPro(pro);
                 response.setFileQueue(fileQueue);
                 HermesEventBus.getDefault().post(response);
+                datas.get(key).setPro(pro);
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -159,7 +184,6 @@ public class UploadService extends Service {
         @Override
         protected void onPostExecute(Integer integer) {
             super.onPostExecute(integer);
-            Log.w("test", "finish:" + integer);
             UploadResponse response = new UploadResponse();
             response.setState(2);
             response.setPro(100);
@@ -170,12 +194,19 @@ public class UploadService extends Service {
         }
     }
 
-//    void msg(int index, String msg) {
-//        RunThread runThread = new RunThread();
-//        runThread.setIndex(index);
-//        runThread.setMsg(msg);
-//        HermesEventBus.getDefault().post(runThread);
-//    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    protected void getServiceData(UploadStatus data) {
+        if (data.getStatus() == 100) {
 
+            List<FileQueue> fileQueues = new ArrayList<>();
+            for (int i = 0; i < datas.size(); i++) {
+                fileQueues.add(datas.valueAt(i));
+            }
 
+            UploadStatus response = new UploadStatus();
+            response.setStatus(200);
+            response.setDatas(fileQueues);
+            HermesEventBus.getDefault().post(response);
+        }
+    }
 }

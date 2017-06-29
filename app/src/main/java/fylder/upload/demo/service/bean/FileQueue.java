@@ -1,4 +1,4 @@
-package fylder.upload.demo.service;
+package fylder.upload.demo.service.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -11,31 +11,33 @@ public class FileQueue implements Parcelable {
 
     private String path;
     private int mid;
+    private  int pro;
 
+    public FileQueue() {
+    }
+
+    protected FileQueue(Parcel in) {
+        path = in.readString();
+        mid = in.readInt();
+        pro = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(path);
+        dest.writeInt(mid);
+        dest.writeInt(pro);
+    }
 
     @Override
     public int describeContents() {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.path);
-        dest.writeInt(this.mid);
-    }
-
-    public FileQueue() {
-    }
-
-    protected FileQueue(Parcel in) {
-        this.path = in.readString();
-        this.mid = in.readInt();
-    }
-
-    public static final Parcelable.Creator<FileQueue> CREATOR = new Parcelable.Creator<FileQueue>() {
+    public static final Creator<FileQueue> CREATOR = new Creator<FileQueue>() {
         @Override
-        public FileQueue createFromParcel(Parcel source) {
-            return new FileQueue(source);
+        public FileQueue createFromParcel(Parcel in) {
+            return new FileQueue(in);
         }
 
         @Override
@@ -58,5 +60,13 @@ public class FileQueue implements Parcelable {
 
     public void setMid(int mid) {
         this.mid = mid;
+    }
+
+    public int getPro() {
+        return pro;
+    }
+
+    public void setPro(int pro) {
+        this.pro = pro;
     }
 }
